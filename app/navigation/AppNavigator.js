@@ -48,7 +48,6 @@ export default function AppNavigator() {
     return null; // Or a loading screen
   }
 
-  // Determine initial route based on app state
   const getInitialRouteName = () => {
     if (isFirstLaunch) return 'Welcome';
     if (isLoggedIn) return 'Dashboard';

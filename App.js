@@ -1,4 +1,4 @@
-// App.js - Add AuthProvider import and wrap
+// App.js 
 import './global.css';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import AppNavigator from './app/navigation/AppNavigator';
