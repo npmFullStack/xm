@@ -11,6 +11,7 @@ import {
   Platform,
   ImageBackground,
   useColorScheme,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
@@ -19,12 +20,16 @@ import { loginSchema } from '../schema/authSchema';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../hooks/useAuth';
 import tw from '../../lib/tailwind';
+import { useDeviceContext } from 'twrnc';
 
 export default function Login({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
+  
+  // Enable device context for this component
+  useDeviceContext(tw);
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const placeholderColor = isDark ? '#94a3b8' : '#64748b';
@@ -36,17 +41,18 @@ export default function Login({ navigation }) {
     defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = async (data) => {
-    setLoading(true);
-    try {
-      await login(data);
-      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
-    } catch (error) {
-      Alert.alert('Login Failed', error?.response?.data?.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
-  };
+
+const onSubmit = async (data) => {
+  setLoading(true);
+  try {
+    await login(data);
+    navigation.navigate('Dashboard');
+  } catch (error) {
+    Alert.alert('Login Failed', error?.response?.data?.message || 'Invalid email or password');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={tw`flex-1 bg-white dark:bg-slate-900`}>
@@ -69,7 +75,53 @@ export default function Login({ navigation }) {
               source={require('../assets/images/background.png')}
               style={tw`flex-1 justify-center items-center px-6`}
               resizeMode="cover"
-            />
+            >
+              {/* Logo and Text Container */}
+              <View style={tw`items-center justify-center`}>
+                {/* Text with smooth white outline */}
+                <View style={tw`relative items-center justify-center`}>
+                  {/* Smooth white outline layers */}
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: -2, left: -2 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: -2, left: 0 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: -2, left: 2 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: 0, left: -2 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: 0, left: 2 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: 2, left: -2 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: 2, left: 0 }]}>
+                    XtraMile
+                  </Text>
+                  <Text style={[tw`absolute text-4xl font-bold text-white`, { top: 2, left: 2 }]}>
+                    XtraMile
+                  </Text>
+                  
+                  {/* Main blue text */}
+                  <Text style={tw`text-4xl font-bold text-blue-600 relative z-10`}>
+                    XtraMile
+                  </Text>
+                </View>
+
+                {/* Slogan with white color and subtle shadow */}
+                <Text style={[tw`text-base font-medium text-white mt-2 text-center`, {
+                  textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                  textShadowOffset: { width: 1, height: 1 },
+                  textShadowRadius: 2
+                }]}>
+                  Your Trusted Delivery Partner
+                </Text>
+              </View>
+            </ImageBackground>
           </View>
 
           {/* Login Form */}
@@ -77,9 +129,11 @@ export default function Login({ navigation }) {
             <Text style={tw`text-2xl font-bold text-gray-900 dark:text-white text-center mb-2`}>
               Login
             </Text>
-
+            
             <View style={tw`flex-row justify-center mb-6`}>
-              <Text style={tw`text-gray-600 dark:text-gray-400 font-sans`}>Don't Have An Account?</Text>
+              <Text style={tw`text-gray-600 dark:text-gray-400 font-sans`}>
+                Don't Have An Account?
+              </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={tw`text-blue-600 font-semibold`}> Sign Up</Text>
               </TouchableOpacity>
@@ -108,7 +162,9 @@ export default function Login({ navigation }) {
                 />
               </View>
               {errors.email && (
-                <Text style={tw`text-red-400 text-sm mt-1 ml-1 font-sans`}>{errors.email.message}</Text>
+                <Text style={tw`text-red-400 text-sm mt-1 ml-1 font-sans`}>
+                  {errors.email.message}
+                </Text>
               )}
             </View>
 
@@ -133,24 +189,38 @@ export default function Login({ navigation }) {
                   )}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={placeholderColor} />
+                  <Icon 
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
+                    size={20}
+                    color={placeholderColor} 
+                  />
                 </TouchableOpacity>
               </View>
               {errors.password && (
-                <Text style={tw`text-red-400 text-sm mt-1 ml-1 font-sans`}>{errors.password.message}</Text>
+                <Text style={tw`text-red-400 text-sm mt-1 ml-1 font-sans`}>
+                  {errors.password.message}
+                </Text>
               )}
             </View>
 
             {/* Remember Me / Forgot */}
             <View style={tw`flex-row justify-between items-center mb-6`}>
-              <TouchableOpacity style={tw`flex-row items-center`} onPress={() => setRememberMe(!rememberMe)}>
+              <TouchableOpacity 
+                style={tw`flex-row items-center`} 
+                onPress={() => setRememberMe(!rememberMe)}
+              >
                 <View style={tw`${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-600'} w-5 h-5 rounded border-2 mr-2 justify-center items-center`}>
                   {rememberMe && <Icon name="check" size={14} color="white" />}
                 </View>
-                <Text style={tw`text-gray-600 dark:text-gray-400 font-sans`}>Remember Me</Text>
+                <Text style={tw`text-gray-600 dark:text-gray-400 font-sans`}>
+                  Remember Me
+                </Text>
               </TouchableOpacity>
+              
               <TouchableOpacity>
-                <Text style={tw`text-blue-600 font-semibold font-sans`}>Forgot Password?</Text>
+                <Text style={tw`text-blue-600 font-semibold font-sans`}>
+                  Forgot Password?
+                </Text>
               </TouchableOpacity>
             </View>
 
