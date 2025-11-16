@@ -4,12 +4,14 @@ import AppNavigator from './app/navigation/AppNavigator';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { View, Text, useColorScheme } from 'react-native';
+import { View, Text, useColorScheme, StatusBar } from 'react-native';
+import { useDeviceContext } from 'twrnc';
+import tw from './lib/tailwind';
 
-// Keep the splash screen visible while we fetch resources
+// Keep splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-// Custom themes that match your design
+// Custom themes
 const CustomLightTheme = {
   ...DefaultTheme,
   colors: {
@@ -44,26 +46,33 @@ export default function App() {
     'Poppins-Bold': require('./app/assets/fonts/Poppins-Bold.ttf'),
   });
 
-  // Get device color scheme
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  // Tailwind device context
+  useDeviceContext(tw, { observeDeviceColorSchemeChanges: true });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded || fontError) SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
-        <Text style={{ color: 'white', fontFamily: 'Poppins-Regular' }}>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? '#0f172a' : '#f8fafc' }}>
+        <Text style={{ color: isDark ? 'white' : '#334155', fontFamily: 'Poppins-Regular' }}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <NavigationContainer theme={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
-      <AppNavigator />
-    </NavigationContainer>
+    <>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={isDark ? '#0f172a' : '#f8fafc'}
+      />
+      <NavigationContainer theme={isDark ? CustomDarkTheme : CustomLightTheme}>
+        <AppNavigator />
+      </NavigationContainer>
+    </>
   );
 }

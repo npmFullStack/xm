@@ -1,240 +1,235 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
   StatusBar,
   KeyboardAvoidingView,
-  Platform 
+  Platform,
+  ImageBackground,
+  useColorScheme,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema } from '../schema/authSchema';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../hooks/useAuth';
+import tw from '../../lib/tailwind';
 
 export default function Register({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const theme = useTheme();
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const placeholderColor = isDark ? '#94a3b8' : '#64748b';
+
+  const { register: registerUser } = useAuth();
 
   const { control, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
+      first_name: '',
+      last_name: '',
       email: '',
       password: '',
-      confirmPassword: ''
-    }
+      confirmPassword: '',
+    },
   });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await axios.post('http://your-api-domain.com/api/auth/register', data);
-      
-      await AsyncStorage.setItem('authToken', response.data.token);
-      await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
-      await AsyncStorage.setItem('hasLaunched', 'true');
-      
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Dashboard' }],
+      await registerUser({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.confirmPassword,
       });
+
+      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
     } catch (error) {
-      Alert.alert(
-        'Registration Failed',
-        error.response?.data?.message || 'Something went wrong'
-      );
+      Alert.alert('Registration Failed', error?.response?.data?.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
-  const statusBarStyle = theme.isDark ? 'light-content' : 'dark-content';
-  const statusBarBackgroundColor = theme.isDark ? '#0f172a' : '#f8fafc';
-  const placeholderColor = theme?.colors?.muted || '#9CA3AF';
-
   return (
-    <View className="flex-1 bg-white dark:bg-slate-900">
-      <StatusBar 
-        backgroundColor={statusBarBackgroundColor}
-        barStyle={statusBarStyle}
+    <SafeAreaView style={tw`flex-1 bg-white dark:bg-slate-900`}>
+      <StatusBar
+        backgroundColor={isDark ? '#0f172a' : '#f8fafc'}
+        barStyle={isDark ? 'light-content' : 'dark-content'}
       />
-      
-      <KeyboardAvoidingView 
+
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={tw`flex-1`}
       >
-        <ScrollView 
-          contentContainerStyle={{ flexGrow: 1 }}
+        <ScrollView
+          contentContainerStyle={tw`flex-grow`}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 px-6 justify-center">
-            <Text className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2 font-bold">
+          {/* Top Image Section */}
+          <View style={tw`h-80`}>
+            <ImageBackground
+              source={require('../assets/images/background.png')}
+              style={tw`flex-1 justify-center items-center px-6`}
+              resizeMode="cover"
+            />
+          </View>
+
+          {/* Form Card */}
+          <View style={tw`flex-1 bg-white dark:bg-slate-900 rounded-t-3xl -mt-8 px-6 pt-8`}>
+            <Text style={tw`text-3xl font-bold text-gray-900 dark:text-white text-center mb-2`}>
               Create Account
             </Text>
-            <Text className="text-base text-gray-600 dark:text-gray-300 text-center mb-8 font-medium">
+            <Text style={tw`text-base text-gray-600 dark:text-gray-300 text-center mb-8`}>
               Sign up to get started
             </Text>
 
-            {/* Name Field */}
-            <View className="mb-6">
-              <Text className="text-gray-700 dark:text-gray-300 mb-2 font-medium">Full Name</Text>
+            {/* First Name */}
+            <View style={tw`mb-4`}>
               <Controller
                 control={control}
-                name="name"
+                name="first_name"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    className={`bg-gray-50 dark:bg-gray-800 border ${
-                      errors.name ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                    } rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg font-sans`}
-                    placeholder="Enter your full name"
+                    style={tw`bg-gray-50 dark:bg-gray-800 border ${errors.first_name ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg`}
+                    placeholder="First Name"
                     placeholderTextColor={placeholderColor}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
                     autoCapitalize="words"
-                    selectionColor="#2563eb"
                   />
                 )}
               />
-              {errors.name && (
-                <Text className="text-red-400 text-sm mt-2 ml-1 font-sans">{errors.name.message}</Text>
-              )}
+              {errors.first_name && <Text style={tw`text-red-400 text-sm mt-1 ml-1`}>{errors.first_name.message}</Text>}
             </View>
 
-            {/* Email Field */}
-            <View className="mb-6">
-              <Text className="text-gray-700 dark:text-gray-300 mb-2 font-medium">Email</Text>
+            {/* Last Name */}
+            <View style={tw`mb-4`}>
+              <Controller
+                control={control}
+                name="last_name"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={tw`bg-gray-50 dark:bg-gray-800 border ${errors.last_name ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg`}
+                    placeholder="Last Name"
+                    placeholderTextColor={placeholderColor}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    autoCapitalize="words"
+                  />
+                )}
+              />
+              {errors.last_name && <Text style={tw`text-red-400 text-sm mt-1 ml-1`}>{errors.last_name.message}</Text>}
+            </View>
+
+            {/* Email */}
+            <View style={tw`mb-4`}>
               <Controller
                 control={control}
                 name="email"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    className={`bg-gray-50 dark:bg-gray-800 border ${
-                      errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                    } rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg font-sans`}
-                    placeholder="Enter your email"
+                    style={tw`bg-gray-50 dark:bg-gray-800 border ${errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg`}
+                    placeholder="Email"
                     placeholderTextColor={placeholderColor}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    selectionColor="#2563eb"
                   />
                 )}
               />
-              {errors.email && (
-                <Text className="text-red-400 text-sm mt-2 ml-1 font-sans">{errors.email.message}</Text>
-              )}
+              {errors.email && <Text style={tw`text-red-400 text-sm mt-1 ml-1`}>{errors.email.message}</Text>}
             </View>
 
-            {/* Password Field */}
-            <View className="mb-6">
-              <Text className="text-gray-700 dark:text-gray-300 mb-2 font-medium">Password</Text>
-              <View className="relative">
-                <Controller
-                  control={control}
-                  name="password"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <TextInput
-                      className={`bg-gray-50 dark:bg-gray-800 border ${
-                        errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                      } rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg pr-12 font-sans`}
-                      placeholder="Enter your password"
-                      placeholderTextColor={placeholderColor}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      secureTextEntry={!showPassword}
-                      selectionColor="#2563eb"
-                    />
-                  )}
-                />
-                <TouchableOpacity
-                  className="absolute right-4 top-4"
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Icon 
-                    name={showPassword ? 'eye-off' : 'eye'} 
-                    size={24} 
-                    color={placeholderColor} 
+            {/* Password */}
+            <View style={tw`mb-4 relative`}>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={tw`bg-gray-50 dark:bg-gray-800 border ${errors.password ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg pr-12`}
+                    placeholder="Password"
+                    placeholderTextColor={placeholderColor}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    secureTextEntry={!showPassword}
                   />
-                </TouchableOpacity>
-              </View>
-              {errors.password && (
-                <Text className="text-red-400 text-sm mt-2 ml-1 font-sans">{errors.password.message}</Text>
-              )}
+                )}
+              />
+              <TouchableOpacity
+                style={tw`absolute right-4 top-4`}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={placeholderColor} />
+              </TouchableOpacity>
+              {errors.password && <Text style={tw`text-red-400 text-sm mt-1 ml-1`}>{errors.password.message}</Text>}
             </View>
 
-            {/* Confirm Password Field */}
-            <View className="mb-6">
-              <Text className="text-gray-700 dark:text-gray-300 mb-2 font-medium">Confirm Password</Text>
-              <View className="relative">
-                <Controller
-                  control={control}
-                  name="confirmPassword"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <TextInput
-                      className={`bg-gray-50 dark:bg-gray-800 border ${
-                        errors.confirmPassword ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                      } rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg pr-12 font-sans`}
-                      placeholder="Confirm your password"
-                      placeholderTextColor={placeholderColor}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      secureTextEntry={!showConfirmPassword}
-                      selectionColor="#2563eb"
-                    />
-                  )}
-                />
-                <TouchableOpacity
-                  className="absolute right-4 top-4"
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  <Icon 
-                    name={showConfirmPassword ? 'eye-off' : 'eye'} 
-                    size={24} 
-                    color={placeholderColor} 
+            {/* Confirm Password */}
+            <View style={tw`mb-4 relative`}>
+              <Controller
+                control={control}
+                name="confirmPassword"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={tw`bg-gray-50 dark:bg-gray-800 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'} rounded-xl px-4 py-4 text-gray-900 dark:text-white text-lg pr-12`}
+                    placeholder="Confirm Password"
+                    placeholderTextColor={placeholderColor}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    secureTextEntry={!showConfirmPassword}
                   />
-                </TouchableOpacity>
-              </View>
-              {errors.confirmPassword && (
-                <Text className="text-red-400 text-sm mt-2 ml-1 font-sans">{errors.confirmPassword.message}</Text>
-              )}
+                )}
+              />
+              <TouchableOpacity
+                style={tw`absolute right-4 top-4`}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Icon name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={placeholderColor} />
+              </TouchableOpacity>
+              {errors.confirmPassword && <Text style={tw`text-red-400 text-sm mt-1 ml-1`}>{errors.confirmPassword.message}</Text>}
             </View>
 
-            {/* Register Button */}
+            {/* Submit Button */}
             <TouchableOpacity
-              className="bg-blue-600 rounded-xl py-4 mt-4"
+              style={tw`bg-blue-600 rounded-xl py-4 mt-2 mb-4`}
               onPress={handleSubmit(onSubmit)}
               disabled={loading}
             >
-              <Text className="text-white text-center font-semibold text-lg">
+              <Text style={tw`text-white text-center font-bold text-base`}>
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Text>
             </TouchableOpacity>
 
-            {/* Login Link */}
-            <View className="flex-row justify-center mt-6">
-              <Text className="text-gray-600 dark:text-gray-400 font-sans">Already have an account? </Text>
+            {/* Link to Login */}
+            <View style={tw`flex-row justify-center mt-4`}>
+              <Text style={tw`text-gray-600 dark:text-gray-400`}>Already have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text className="text-blue-500 font-semibold">Sign In</Text>
+                <Text style={tw`text-blue-600 font-semibold`}>Sign In</Text>
               </TouchableOpacity>
             </View>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
