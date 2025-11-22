@@ -1,6 +1,7 @@
 // App.js 
 import './global.css';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // Add this import
 import AppNavigator from './app/navigation/AppNavigator';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -9,10 +10,20 @@ import { View, Text, useColorScheme, StatusBar, Appearance } from 'react-native'
 import { useDeviceContext } from 'twrnc';
 import tw from './lib/tailwind';
 import { DrawerProvider } from './app/components/CustomDrawer';
-import { AuthProvider } from './app/hooks/useAuth'; // Add this import
+import { AuthProvider } from './app/hooks/useAuth';
 
 // Keep splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 // Custom themes
 const CustomLightTheme = {
@@ -89,7 +100,7 @@ export default function App() {
     }
 
     return (
-        <>
+        <QueryClientProvider client={queryClient}>
             <StatusBar
                 barStyle={isDark ? 'light-content' : 'dark-content'}
                 backgroundColor={isDark ? '#0f172a' : '#f8fafc'}
@@ -101,6 +112,6 @@ export default function App() {
                     </DrawerProvider>
                 </NavigationContainer>
             </AuthProvider>
-        </>
+        </QueryClientProvider>
     );
 }
