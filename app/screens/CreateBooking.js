@@ -66,11 +66,9 @@ const CreateBooking = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const [weightValidation, setWeightValidation] = useState({ isValid: true, message: '' });
   
-  // FIXED: Date picker state management
-  const [showDatePicker, setShowDatePicker] = useState({
-    departure: false,
-    delivery: false
-  });
+  // FIXED: Separate state for each date picker
+  const [showDeparturePicker, setShowDeparturePicker] = useState(false);
+  const [showDeliveryPicker, setShowDeliveryPicker] = useState(false);
 
   // Fix dropdown data - ensure we always have arrays
   const shippingLines = shippingLinesQuery.data || [];
@@ -88,11 +86,10 @@ const CreateBooking = ({ navigation }) => {
     return [...baseOptions, { value: "other", label: "Other" }];
   }, [categories]);
 
-  // Format ports for display with port name and code - FIXED VERSION
+  // Format ports for display with port name and code
   const formattedPorts = React.useMemo(() => {
     return ports.map(port => ({
       ...port,
-      // Use port_name if available, otherwise use name or route_name
       displayName: port.port_name 
         ? `${port.port_name} (${port.route_name || port.code || ''})`
         : port.name 
@@ -140,19 +137,19 @@ const CreateBooking = ({ navigation }) => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  // FIXED: Date picker handler - properly manage visibility
-  const handleDateChange = (field, event, selectedDate) => {
-    // Always hide the picker first
-    setShowDatePicker(prev => ({ ...prev, [field]: false }));
-    
-    // Only update if date was selected (not cancelled)
-    if (selectedDate) {
-      handleInputChange(field, selectedDate);
+  // FIXED: Date picker handlers - one for each date picker
+  const handleDepartureDateChange = (event, selectedDate) => {
+    setShowDeparturePicker(false);
+    if (event.type === 'set' && selectedDate) {
+      handleInputChange('departureDate', selectedDate);
     }
   };
 
-  const showDatepicker = (field) => {
-    setShowDatePicker(prev => ({ ...prev, [field]: true }));
+  const handleDeliveryDateChange = (event, selectedDate) => {
+    setShowDeliveryPicker(false);
+    if (event.type === 'set' && selectedDate) {
+      handleInputChange('deliveryDate', selectedDate);
+    }
   };
 
   const formatDate = (date) => {
@@ -209,7 +206,7 @@ const CreateBooking = ({ navigation }) => {
     setFormData(prev => ({ ...prev, containerQuantity: prev.containerQuantity > 1 ? prev.containerQuantity - 1 : 1 }));
   };
 
-  // FIXED: Transform form data for validation
+  // Transform form data for validation
   const transformFormDataForValidation = () => {
     return {
       ...formData,
@@ -219,7 +216,6 @@ const CreateBooking = ({ navigation }) => {
         quantity: item.quantity ? parseInt(item.quantity, 10) : 0,
       })),
       containerQuantity: parseInt(formData.containerQuantity, 10),
-      // Add user data for validation
       firstName: user?.first_name || '',
       lastName: user?.last_name || '',
       email: user?.email || '',
@@ -375,31 +371,30 @@ const CreateBooking = ({ navigation }) => {
               <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>1. Shipper Information</Text>
               
               <View style={tw`gap-4`}>
-                <View style={tw`flex-row gap-4`}>
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Shipper First Name *</Text>
-                    <TextInput
-                      style={tw`border ${errors.shipperFirstName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
-                      value={formData.shipperFirstName}
-                      onChangeText={(value) => handleInputChange('shipperFirstName', value)}
-                      placeholder="Enter shipper's first name"
-                    />
-                    {errors.shipperFirstName && (
-                      <Text style={tw`text-red-500 text-xs mt-1`}>{errors.shipperFirstName}</Text>
-                    )}
-                  </View>
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Shipper Last Name *</Text>
-                    <TextInput
-                      style={tw`border ${errors.shipperLastName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
-                      value={formData.shipperLastName}
-                      onChangeText={(value) => handleInputChange('shipperLastName', value)}
-                      placeholder="Enter shipper's last name"
-                    />
-                    {errors.shipperLastName && (
-                      <Text style={tw`text-red-500 text-xs mt-1`}>{errors.shipperLastName}</Text>
-                    )}
-                  </View>
+                <View>
+                  <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Shipper First Name *</Text>
+                  <TextInput
+                    style={tw`border ${errors.shipperFirstName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
+                    value={formData.shipperFirstName}
+                    onChangeText={(value) => handleInputChange('shipperFirstName', value)}
+                    placeholder="Enter shipper's first name"
+                  />
+                  {errors.shipperFirstName && (
+                    <Text style={tw`text-red-500 text-xs mt-1`}>{errors.shipperFirstName}</Text>
+                  )}
+                </View>
+                
+                <View>
+                  <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Shipper Last Name *</Text>
+                  <TextInput
+                    style={tw`border ${errors.shipperLastName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
+                    value={formData.shipperLastName}
+                    onChangeText={(value) => handleInputChange('shipperLastName', value)}
+                    placeholder="Enter shipper's last name"
+                  />
+                  {errors.shipperLastName && (
+                    <Text style={tw`text-red-500 text-xs mt-1`}>{errors.shipperLastName}</Text>
+                  )}
                 </View>
 
                 <View>
@@ -420,31 +415,30 @@ const CreateBooking = ({ navigation }) => {
               <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>2. Consignee Information</Text>
               
               <View style={tw`gap-4`}>
-                <View style={tw`flex-row gap-4`}>
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Consignee First Name *</Text>
-                    <TextInput
-                      style={tw`border ${errors.consigneeFirstName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
-                      value={formData.consigneeFirstName}
-                      onChangeText={(value) => handleInputChange('consigneeFirstName', value)}
-                      placeholder="Enter consignee's first name"
-                    />
-                    {errors.consigneeFirstName && (
-                      <Text style={tw`text-red-500 text-xs mt-1`}>{errors.consigneeFirstName}</Text>
-                    )}
-                  </View>
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Consignee Last Name *</Text>
-                    <TextInput
-                      style={tw`border ${errors.consigneeLastName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
-                      value={formData.consigneeLastName}
-                      onChangeText={(value) => handleInputChange('consigneeLastName', value)}
-                      placeholder="Enter consignee's last name"
-                    />
-                    {errors.consigneeLastName && (
-                      <Text style={tw`text-red-500 text-xs mt-1`}>{errors.consigneeLastName}</Text>
-                    )}
-                  </View>
+                <View>
+                  <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Consignee First Name *</Text>
+                  <TextInput
+                    style={tw`border ${errors.consigneeFirstName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
+                    value={formData.consigneeFirstName}
+                    onChangeText={(value) => handleInputChange('consigneeFirstName', value)}
+                    placeholder="Enter consignee's first name"
+                  />
+                  {errors.consigneeFirstName && (
+                    <Text style={tw`text-red-500 text-xs mt-1`}>{errors.consigneeFirstName}</Text>
+                  )}
+                </View>
+                
+                <View>
+                  <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Consignee Last Name *</Text>
+                  <TextInput
+                    style={tw`border ${errors.consigneeLastName ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 bg-white`}
+                    value={formData.consigneeLastName}
+                    onChangeText={(value) => handleInputChange('consigneeLastName', value)}
+                    placeholder="Enter consignee's last name"
+                  />
+                  {errors.consigneeLastName && (
+                    <Text style={tw`text-red-500 text-xs mt-1`}>{errors.consigneeLastName}</Text>
+                  )}
                 </View>
 
                 <View>
@@ -515,6 +509,7 @@ const CreateBooking = ({ navigation }) => {
                         )}
                       </View>
                       
+                      {/* FIXED: Weight and Quantity in same row */}
                       <View style={tw`flex-row gap-3`}>
                         <View style={tw`flex-1`}>
                           <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Weight (kg) *</Text>
@@ -590,45 +585,43 @@ const CreateBooking = ({ navigation }) => {
                     )}
                   </View>
 
-                  {/* Preferred Dates - FIXED: Date pickers */}
-                  <View style={tw`gap-3`}>
-                    <View>
-                      <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Preferred Departure Date</Text>
-                      <TouchableOpacity 
-                        style={tw`border border-gray-300 rounded-lg p-3 bg-white`}
-                        onPress={() => showDatepicker('departure')}
-                      >
-                        <Text style={tw`text-gray-800`}>{formatDate(formData.departureDate)}</Text>
-                      </TouchableOpacity>
-                      {showDatePicker.departure && (
-                        <DateTimePicker
-                          value={formData.departureDate || new Date()}
-                          mode="date"
-                          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                          onChange={(event, date) => handleDateChange('departureDate', event, date)}
-                          minimumDate={new Date()}
-                        />
-                      )}
-                    </View>
+                  {/* FIXED: Preferred Dates with separate state management */}
+                  <View>
+                    <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Preferred Departure Date</Text>
+                    <TouchableOpacity 
+                      style={tw`border border-gray-300 rounded-lg p-3 bg-white`}
+                      onPress={() => setShowDeparturePicker(true)}
+                    >
+                      <Text style={tw`text-gray-800`}>{formatDate(formData.departureDate)}</Text>
+                    </TouchableOpacity>
+                    {showDeparturePicker && (
+                      <DateTimePicker
+                        value={formData.departureDate || new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={handleDepartureDateChange}
+                        minimumDate={new Date()}
+                      />
+                    )}
+                  </View>
 
-                    <View>
-                      <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Preferred Delivery Date</Text>
-                      <TouchableOpacity 
-                        style={tw`border border-gray-300 rounded-lg p-3 bg-white`}
-                        onPress={() => showDatepicker('delivery')}
-                      >
-                        <Text style={tw`text-gray-800`}>{formatDate(formData.deliveryDate)}</Text>
-                      </TouchableOpacity>
-                      {showDatePicker.delivery && (
-                        <DateTimePicker
-                          value={formData.deliveryDate || new Date()}
-                          mode="date"
-                          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                          onChange={(event, date) => handleDateChange('deliveryDate', event, date)}
-                          minimumDate={formData.departureDate || new Date()}
-                        />
-                      )}
-                    </View>
+                  <View>
+                    <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Preferred Delivery Date</Text>
+                    <TouchableOpacity 
+                      style={tw`border border-gray-300 rounded-lg p-3 bg-white`}
+                      onPress={() => setShowDeliveryPicker(true)}
+                    >
+                      <Text style={tw`text-gray-800`}>{formatDate(formData.deliveryDate)}</Text>
+                    </TouchableOpacity>
+                    {showDeliveryPicker && (
+                      <DateTimePicker
+                        value={formData.deliveryDate || new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={handleDeliveryDateChange}
+                        minimumDate={formData.departureDate || new Date()}
+                      />
+                    )}
                   </View>
                 </View>
               </View>
@@ -679,7 +672,7 @@ const CreateBooking = ({ navigation }) => {
                     </View>
                   )}
                   
-                  {/* Enhanced Weight Display */}
+                  {/* Weight Display */}
                   {items.some(item => item.weight && item.quantity) && formData.containerSize && (
                     <View style={tw`border ${
                       !weightValidation.isValid 
