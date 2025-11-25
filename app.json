@@ -20,7 +20,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": false,
-      "package": "com.norway08.xtramile"
+      "package": "com.norway08.xtramile",
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,11 +29,6 @@
     "plugins": [
       "expo-font"
     ],
-    "experiments": {
-      "reactNativeArchitectures": {
-        "android": "new"
-      }
-    },
     "extra": {
       "eas": {
         "projectId": "0a2bf6fb-13f5-4927-9bb6-4ae90338bfcb"
