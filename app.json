@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "xm",
-    "slug": "xm",
+    "slug": "xtramile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,13 +20,20 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.norway08.xtramile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0a2bf6fb-13f5-4927-9bb6-4ae90338bfcb"
+      }
+    },
+    "owner": "norway08"
   }
 }
