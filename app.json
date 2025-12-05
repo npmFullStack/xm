@@ -12,13 +12,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "The app accesses your photos to let you upload receipt images.",
+        "NSCameraUsageDescription": "The app accesses your camera to let you take photos of receipts.",
+        "NSPhotoLibraryAddUsageDescription": "The app saves photos to your library to store receipt images."
+      },
+      "bundleIdentifier": "com.norway08.xtramile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
       "edgeToEdgeEnabled": false,
       "package": "com.norway08.xtramile",
       "newArchEnabled": true
@@ -27,7 +39,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you upload receipt images.",
+          "cameraPermission": "The app accesses your camera to let you take photos of receipts."
+        }
+      ]
     ],
     "extra": {
       "eas": {
